@@ -545,5 +545,5 @@ LaraKnow AI is distributed as a reusable Laravel package. Configure and deploy i
 ---
 
 <div align="center">
-   <strong> Made with ❤️ by <a href="https://webbycrown.com" rel="nofollow">WebbyCrown</a> </strong>
+   <strong> Made with ❤️ by <a href="https://www.webbycrown.com" rel="nofollow">WebbyCrown</a> </strong>
 </div>
