@@ -150,13 +150,32 @@ class ResponseNormalizerService
 
         if (
             empty($rows)
-            || $this->replyAlreadyContainsRowData($reply, $rows)
             || $this->singleMetricAlreadyAnswered($reply, $rows)
         ) {
             return $reply;
         }
 
-        $preview = $this->readablePreviewList($rows);
+        // If the assistant already included structured rows in its reply,
+        // check whether it included all rows. If the reply contains fewer
+        // structured rows than the actual dataset, continue and append the
+        // full preview so users can see the complete result set.
+        if ($this->replyAlreadyContainsRowData($reply, $rows)) {
+            $structuredCount = $this->countStructuredRowsInReply($reply);
+
+            if ($structuredCount >= count($rows)) {
+                return $reply;
+            }
+            // otherwise the model reply appears truncated; fall through to append preview
+        }
+
+        // Prefer a compact markdown table when rows contain consistent columns
+        $columns = $this->pickPreviewColumns($rows);
+
+        if (! empty($columns) && count($columns) > 1 && count($columns) <= $this->maxPreviewColumns()) {
+            $preview = $this->readablePreviewTable($rows, $columns);
+        } else {
+            $preview = $this->readablePreviewList($rows);
+        }
 
         if ($preview === '') {
             return $reply;
@@ -598,6 +617,36 @@ class ResponseNormalizerService
         return implode("\n", $lines);
     }
 
+    /**
+     * Render a markdown table for preview rows when appropriate.
+     *
+     * @param array<int, array<string,mixed>> $rows
+     * @param array<int,string> $columns
+     */
+    private function readablePreviewTable(array $rows, array $columns): string
+    {
+        if (empty($columns)) {
+            return '';
+        }
+
+        $header = '| ' . implode(' | ', array_map(fn($c) => $this->humanColumnLabel($c), $columns)) . ' |';
+        $sep = '| ' . implode(' | ', array_map(fn($_) => '---', $columns)) . ' |';
+
+        $lines = [$header, $sep];
+
+        foreach (array_slice($rows, 0, $this->maxPreviewRows()) as $row) {
+            $cells = [];
+
+            foreach ($columns as $column) {
+                $cells[] = $this->displayPreviewValue($row[$column] ?? null);
+            }
+
+            $lines[] = '| ' . implode(' | ', $cells) . ' |';
+        }
+
+        return implode("\n", $lines);
+    }
+
     private function pickPreviewColumns(array $rows): array
     {
         $columns = [];
@@ -719,6 +768,25 @@ class ResponseNormalizerService
         );
 
         return $this->cleanText(implode("\n", $lines));
+    }
+
+    /**
+     * Count structured rows in an assistant reply (numbered items, bullet rows, or table rows).
+     */
+    private function countStructuredRowsInReply(string $reply): int
+    {
+        $count = 0;
+
+        // Numbered items like "1." or "1)"
+        $count += preg_match_all('/^\s*\d+\s*[.)]\s+/m', $reply);
+
+        // Bullet list items starting with - or *
+        $count += preg_match_all('/^\s*[-*]\s+/m', $reply);
+
+        // Markdown table body rows (| cell | cell |)
+        $count += preg_match_all('/^\s*\|.*\|\s*$/m', $reply);
+
+        return (int) $count;
     }
 
     /**

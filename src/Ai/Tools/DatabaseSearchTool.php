@@ -69,6 +69,20 @@ class DatabaseSearchTool implements Tool
             $validator = new SqlSafetyValidator;
             $query = $validator->validateSelect($query);
 
+            // Ensure any explicit LIMIT is not smaller than the configured preview rows.
+            $configuredMax = max(1, (int) config('laraknow.ui.responses.max_preview_rows', 50));
+
+            if (preg_match('/\blimit\s+(\d+)/i', $query, $m)) {
+                $limitVal = (int) $m[1];
+
+                if ($limitVal < $configuredMax) {
+                    $query = preg_replace('/\blimit\s+\d+/i', 'LIMIT '.$configuredMax, $query);
+                }
+            } else {
+                // No limit found — ensure we have at least the configured maximum
+                $query .= ' LIMIT '.$configuredMax;
+            }
+
             /*
             |--------------------------------------------------------------------------
             | Execute Query

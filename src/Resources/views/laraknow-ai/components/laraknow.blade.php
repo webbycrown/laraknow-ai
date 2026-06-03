@@ -19,6 +19,7 @@
 
 @php
     $assetBase = trim((string) config('laraknow.asset_path', 'vendor/laraknow'), '/');
+    $routeNamePrefix = trim((string) config('laraknow.route_name_prefix', 'laraknow-ai')) ?: 'laraknow-ai';
     $layoutCssAsset = $assetBase . '/css/layout.css';
     $chatCssAsset = $assetBase . '/css/laraknow.css';
     $chatJsAsset = $assetBase . '/js/laraknow.js';
@@ -307,11 +308,11 @@ $userSlug =
         labels: @json($jsLabels),
         messages: @json($jsMessages),
         icons: @json($jsIcons),
-        chatEndpoint: '{{ route('laraknow-ai.chat') }}',
-        conversationsEndpoint: '{{ route('laraknow-ai.conversations') }}',
-        createConversationEndpoint: '{{ route('laraknow-ai.conversations.create') }}',
-        conversationMessagesEndpoint: '{{ route('laraknow-ai.conversations.messages', ['conversation' => '__CONVERSATION_ID__']) }}',
-        deleteConversationEndpoint: '{{ route('laraknow-ai.conversations.delete', ['conversation' => '__CONVERSATION_ID__']) }}',
+        chatEndpoint: '{{ route($routeNamePrefix.'.chat') }}',
+        conversationsEndpoint: '{{ route($routeNamePrefix.'.conversations') }}',
+        createConversationEndpoint: '{{ route($routeNamePrefix.'.conversations.create') }}',
+        conversationMessagesEndpoint: '{{ route($routeNamePrefix.'.conversations.messages', ['conversation' => '__CONVERSATION_ID__']) }}',
+        deleteConversationEndpoint: '{{ route($routeNamePrefix.'.conversations.delete', ['conversation' => '__CONVERSATION_ID__']) }}',
         showRawDataTable: @json((bool) data_get($uiConfig, 'responses.show_raw_data_table', false)),
         csrfToken: '{{ csrf_token() }}'
     };

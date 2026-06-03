@@ -67,8 +67,6 @@ class ResponseGroundingValidator
 
     private function shouldReplaceReply(string $reply): bool
     {
-        return true;
-
         return $this->contradictsData($reply) || $this->containsSpeculativeAnalytics($reply);
     }
 

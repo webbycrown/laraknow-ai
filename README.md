@@ -155,6 +155,8 @@ The default route prefix is:
 /laraknow-ai
 ```
 
+The default route name prefix is `laraknow-ai`, so route helpers inside the package use names such as `laraknow-ai.chat` and `laraknow-ai.welcome`.
+
 Main routes:
 
 ```text
@@ -176,6 +178,18 @@ Protect routes in `config/laraknow.php` when needed:
 
 ```php
 'route_middleware' => ['web', 'auth'],
+```
+
+If you need a different named route prefix, update this value as well:
+
+```php
+'route_name_prefix' => 'my-laraknow',
+```
+
+To disable the built-in rate limiter entirely, set:
+
+```php
+'rate_limiter_name' => '',
 ```
 
 ---
@@ -237,6 +251,10 @@ return [
     ],
 
     'route_prefix' => 'laraknow-ai',
+    'route_name_prefix' => 'laraknow-ai',
+    'rate_limiter_name' => 'laraknow-ai',
+    'rate_limiter_max_attempts' => 30,
+    'rate_limiter_decay_minutes' => 1,
     'route_middleware' => ['web', 'auth'],
 
     'ui' => [

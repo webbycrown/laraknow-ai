@@ -121,6 +121,10 @@ return [
     |
     */
     'route_prefix' => 'laraknow-ai',
+    'route_name_prefix' => 'laraknow-ai',
+    'rate_limiter_name' => 'laraknow-ai',
+    'rate_limiter_max_attempts' => 30,
+    'rate_limiter_decay_minutes' => 1,
 
     'route_middleware' => [],
 
@@ -157,7 +161,7 @@ return [
             'append_data_preview_when_requested' => true,
             'auto_render_report_fallback' => false,
             'render_report_fallback_when_requested' => true,
-            'max_preview_rows' => 5,
+            'max_preview_rows' => 10,
             'max_preview_columns' => 4,
             'preview_column_order' => [],
         ],

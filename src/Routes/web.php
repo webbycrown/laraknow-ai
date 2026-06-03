@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 $prefix = config('laraknow.route_prefix', 'laraknow-ai');
+$routeNamePrefix = trim((string) config('laraknow.route_name_prefix', 'laraknow-ai')) ?: 'laraknow-ai';
 $middleware = array_values(array_filter((array) config('laraknow.route_middleware', [])));
-$rateLimiterName = 'laraknow-ai';
+$rateLimiterName = trim((string) config('laraknow.rate_limiter_name', 'laraknow-ai'));
 
 if ($rateLimiterName !== '') {
     $middleware[] = 'throttle:'.$rateLimiterName;
@@ -24,22 +25,22 @@ if ($rateLimiterName !== '') {
 
 $middleware = array_values(array_unique($middleware));
 
-Route::prefix($prefix)->middleware($middleware)->group(function () {
+Route::prefix($prefix)->middleware($middleware)->group(function () use ($routeNamePrefix) {
 
     Route::post('/chat', [AiAssistantController::class, 'chat'])
-        ->name('laraknow-ai.chat');
+        ->name($routeNamePrefix.'.chat');
 
     Route::get('/conversations', [AiAssistantController::class, 'conversations'])
-        ->name('laraknow-ai.conversations');
+        ->name($routeNamePrefix.'.conversations');
 
     Route::post('/conversations', [AiAssistantController::class, 'createConversation'])
-        ->name('laraknow-ai.conversations.create');
+        ->name($routeNamePrefix.'.conversations.create');
 
     Route::get('/conversations/{conversation}/messages', [AiAssistantController::class, 'conversationMessages'])
-        ->name('laraknow-ai.conversations.messages');
+        ->name($routeNamePrefix.'.conversations.messages');
 
     Route::delete('/conversations/{conversation}', [AiAssistantController::class, 'deleteConversation'])
-        ->name('laraknow-ai.conversations.delete');
+        ->name($routeNamePrefix.'.conversations.delete');
 
     Route::get('/', function () {
         try {
@@ -72,5 +73,5 @@ Route::prefix($prefix)->middleware($middleware)->group(function () {
                 ],
             ], 500);
         }
-    })->name('laraknow-ai.welcome');
+    })->name($routeNamePrefix.'.welcome');
 });

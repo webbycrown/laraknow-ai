@@ -120,10 +120,13 @@ class DatabaseQueryTool implements Tool
                 throw new Exception('No safe columns were requested.');
             }
 
-            $limit = min(
-                (int) ($request['limit'] ?? 10),
-                50
-            );
+            // Ensure returned rows honor the host-configured preview minimum.
+            $configuredMax = min(50, max(1, (int) config('laraknow.ui.responses.max_preview_rows', 10)));
+
+            $requested = isset($request['limit']) ? (int) $request['limit'] : $configuredMax;
+
+            // Final limit: at least the configured preview rows, capped at 50.
+            $limit = min(max(1, $requested, $configuredMax), 50);
 
             $query = DB::table($table)
                 ->select($columns);
