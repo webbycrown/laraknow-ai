@@ -82,26 +82,13 @@ class PromptSecurity
      */
     public function allowedToolNames(): array
     {
-        $configured = config('laraknow.prompt_security.allowed_tools', null);
-
-        $default = [
+        return [
             'DatabaseSchemaTool',
             'DatabaseIntentQueryTool',
             'DatabaseQueryTool',
             'DatabaseSearchTool',
             'DatabaseReportTool',
         ];
-
-        if (! is_array($configured)) {
-            return $default;
-        }
-
-        $allowed = array_values(array_filter(array_map(
-            fn ($tool): string => is_scalar($tool) ? trim((string) $tool) : '',
-            $configured
-        )));
-
-        return empty($allowed) ? [] : array_values(array_unique($allowed));
     }
 
     public function isToolAllowed(string $toolName): bool
@@ -123,10 +110,6 @@ class PromptSecurity
 
     public function shouldRejectPrompt(string $prompt): bool
     {
-        if (! (bool) config('laraknow.prompt_security.reject_prompt_injection_attempts', true)) {
-            return false;
-        }
-
         $prompt = mb_strtolower($this->sanitizeUserPrompt($prompt));
 
         foreach ($this->promptInjectionPatterns() as $pattern) {

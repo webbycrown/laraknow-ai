@@ -59,27 +59,6 @@ return [
     */
     'auto_analyze_project' => true,
 
-    'conversation_history' => [
-        // When 'always' the assistant will include stored conversation
-        // messages. Use 'follow_up_only' or 'never' if you prefer stricter
-        // behavior. Default chosen here is 'always' to preserve context.
-        'mode' => env('LARAKNOW_CONVERSATION_HISTORY_MODE', 'always'),
-
-        // How many prior messages to include (max). Increase if needed.
-        'conversation_history_limit' => env('LARAKNOW_CONVERSATION_HISTORY_LIMIT', 20),
-
-        // Include assistant messages from history. When true, assistant
-        // replies are replayed; when false only user messages are used.
-        'include_assistant_messages' => env('LARAKNOW_CONVERSATION_HISTORY_INCLUDE_ASSISTANT', true),
-
-        // When true, always include the last assistant message for follow-ups.
-        'include_last_assistant_for_followups' => env('LARAKNOW_CONVERSATION_HISTORY_INCLUDE_LAST_ASSISTANT', true),
-
-        // When false, assistant messages are not sanitized and are included
-        // verbatim. Set to true to strip tables and heavy output (default).
-        'sanitize_assistant_messages' => env('LARAKNOW_CONVERSATION_HISTORY_SANITIZE_ASSISTANT', false),
-    ],
-
     /*
     |--------------------------------------------------------------------------
     | Allowed Tables
@@ -130,54 +109,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Numeric Value Scaling
-    |--------------------------------------------------------------------------
-    |
-    | Use this when users speak in one unit but the database stores another.
-    | The assistant can scale filters and explain returned values consistently.
-    |
-    | Example: if prices are stored in cents, a user asking for "under 700"
-    | should filter the database with 70000.
-    |
-    | [
-    |     [
-    |         'label' => 'money stored in cents',
-    |         'tables' => ['products'],
-    |         'columns' => ['price', 'sale_price'],
-    |         'input_multiplier' => 100,
-    |     ],
-    | ]
-    |
-    */
-    'numeric_value_scaling' => [],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Categorical Value Aliases
-    |--------------------------------------------------------------------------
-    |
-    | Use this when user-friendly words differ from stored database values.
-    | This is useful for status IDs, short codes, enum values, or polymorphic
-    | type strings. Keep aliases project-specific; do not hardcode them.
-    |
-    | Example:
-    | [
-    |     [
-    |         'label' => 'order status aliases',
-    |         'tables' => ['orders'],
-    |         'columns' => ['status'],
-    |         'values' => [
-    |             'paid' => 'P',
-    |             'pending' => 'N',
-    |         ],
-    |     ],
-    | ]
-    |
-    */
-    'categorical_value_aliases' => [],
-
-    /*
-    |--------------------------------------------------------------------------
     | Routes
     |--------------------------------------------------------------------------
     |
@@ -189,6 +120,12 @@ return [
     'route_prefix' => 'laraknow-ai',
 
     'route_middleware' => [],
+
+    'asset_path' => 'vendor/laraknow',
+
+    'assets' => [
+        'jquery_url' => 'https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -205,11 +142,21 @@ return [
         'brand' => [
             'name' => 'LaraKnow',
             'subtitle' => 'Always here to help',
+            'personality' => null,
             'status_text' => 'Online',
             'status_detail' => 'Always here to help',
             'bot_initial' => 'A',
             'bot_avatar' => null,
             'user_avatar' => null,
+        ],
+        'responses' => [
+            'auto_append_data_preview' => false,
+            'append_data_preview_when_requested' => true,
+            'auto_render_report_fallback' => false,
+            'render_report_fallback_when_requested' => true,
+            'max_preview_rows' => 5,
+            'max_preview_columns' => 4,
+            'preview_column_order' => [],
         ],
         'labels' => [
             'open_chat' => 'Open LaraKnow chat',

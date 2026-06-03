@@ -230,7 +230,6 @@ return [
         'remember_token',
         'token',
         'api_token',
-        'secret',
     ],
 
     'blocked_table_columns' => [
@@ -239,6 +238,14 @@ return [
 
     'route_prefix' => 'laraknow-ai',
     'route_middleware' => ['web', 'auth'],
+
+    'ui' => [
+        'theme' => 'auto',
+        'brand' => [
+            'name' => 'LaraKnow',
+            'subtitle' => 'Always here to help',
+        ],
+    ],
 ];
 ```
 
@@ -298,45 +305,9 @@ Use table-specific blocking when only one table needs extra privacy:
 ],
 ```
 
-### Numeric Value Scaling
+### Advanced Query Behavior
 
-Use this only when the database stores values differently than users say them.
-
-Example: prices are stored in cents, but users ask in dollars.
-
-```php
-'numeric_value_scaling' => [
-    [
-        'label' => 'money stored in cents',
-        'tables' => ['products'],
-        'columns' => ['price', 'sale_price'],
-        'input_multiplier' => 100,
-    ],
-],
-```
-
-If the user asks for products under `700`, the assistant can safely filter with `70000`.
-
-### Categorical Value Aliases
-
-Use this when user-friendly words differ from stored values.
-
-```php
-'categorical_value_aliases' => [
-    [
-        'label' => 'order status aliases',
-        'tables' => ['orders'],
-        'columns' => ['status'],
-        'values' => [
-            'paid' => 'P',
-            'pending' => 'N',
-            'cancelled' => 'C',
-        ],
-    ],
-],
-```
-
-Keep aliases in the host config because every project stores statuses differently.
+LaraKnow uses internal package defaults for safe query limits, prompt security, response grounding, schema filtering, and audit logging. Host applications do not configure these behaviors directly through `config/laraknow.php`.
 
 ### UI Settings
 

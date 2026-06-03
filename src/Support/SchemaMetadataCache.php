@@ -24,11 +24,7 @@ class SchemaMetadataCache
             return self::$memory[$key];
         }
 
-        if (
-            ! (bool) config('laraknow.schema_cache.enabled', true)
-            || self::$cacheUnavailable
-            || $this->usesDatabaseCacheStore()
-        ) {
+        if (self::$cacheUnavailable || $this->usesDatabaseCacheStore()) {
             return self::$memory[$key] = $callback();
         }
 
@@ -61,7 +57,7 @@ class SchemaMetadataCache
 
     private function ttl(): int
     {
-        return max(1, (int) config('laraknow.schema_cache.ttl', 600));
+        return 600;
     }
 
     private function usesDatabaseCacheStore(): bool

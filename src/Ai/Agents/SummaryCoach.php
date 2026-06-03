@@ -39,6 +39,15 @@ class SummaryCoach implements Agent, Conversational, HasTools
 {
     use Promptable, RemembersConversations;
 
+    private const DEFAULT_MAX_QUERY_LIMIT = 50;
+    private const DEFAULT_STRUCTURED_QUERY_INTENTS_ENABLED = false;
+    private const DEFAULT_STRUCTURED_QUERY_INTENTS_EXPOSE_LEGACY_SQL_TOOLS = true;
+    private const DEFAULT_CONVERSATION_HISTORY_MODE = 'follow_up_only';
+    private const DEFAULT_CONVERSATION_HISTORY_LIMIT = 10;
+    private const DEFAULT_INCLUDE_ASSISTANT_MESSAGES = false;
+    private const DEFAULT_INCLUDE_LAST_ASSISTANT_FOR_FOLLOWUPS = true;
+    private const DEFAULT_SANITIZE_ASSISTANT_MESSAGES = true;
+
     /**
      * Create a new summary coach agent instance.
      *
@@ -75,10 +84,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
             config('laraknow.blocked_columns', [])
         );
 
-        $maxLimit = config(
-            'laraknow.max_query_limit',
-            50
-        );
+        $maxLimit = $this->maxQueryLimit();
 
         $numericScalingRules = $this->numericScalingRules();
         $categoricalAliasRules = $this->categoricalAliasRules();
@@ -198,22 +204,11 @@ class SummaryCoach implements Agent, Conversational, HasTools
             $messages->whereNull('user_id');
         }
 
-        $limit = max(1, (int) config('laraknow.conversation_history_limit', 10));
+        $limit = $this->conversationHistoryLimit();
 
-        $includeAssistantMessages = (bool) config(
-            'laraknow.conversation_history.include_assistant_messages',
-            false
-        );
-
-        $includeLastAssistantForFollowups = (bool) config(
-            'laraknow.conversation_history.include_last_assistant_for_followups',
-            true
-        );
-
-        $sanitizeAssistantMessages = (bool) config(
-            'laraknow.conversation_history.sanitize_assistant_messages',
-            true
-        );
+        $includeAssistantMessages = $this->includeAssistantMessagesInHistory();
+        $includeLastAssistantForFollowups = $this->includeLastAssistantForFollowups();
+        $sanitizeAssistantMessages = $this->sanitizeAssistantMessagesInHistory();
 
         $storedMessages = $messages
             ->orderBy('created_at', 'desc')
@@ -277,11 +272,11 @@ class SummaryCoach implements Agent, Conversational, HasTools
             new DatabaseSchemaTool,
         ];
 
-        if ((bool) config('laraknow.structured_query_intents.enabled', false)) {
+        if ($this->structuredQueryIntentsEnabled()) {
             $tools[] = new DatabaseIntentQueryTool;
         }
 
-        if ((bool) config('laraknow.structured_query_intents.expose_legacy_sql_tools', true)) {
+        if ($this->exposeLegacySqlTools()) {
             $tools[] = new DatabaseQueryTool;
             $tools[] = new DatabaseSearchTool;
             $tools[] = new DatabaseReportTool;
@@ -353,72 +348,12 @@ class SummaryCoach implements Agent, Conversational, HasTools
 
     private function numericScalingRules(): string
     {
-        $rules = config('laraknow.numeric_value_scaling', []);
-
-        if (! is_array($rules) || empty($rules)) {
-            return 'None configured.';
-        }
-
-        $lines = [];
-
-        foreach ($rules as $rule) {
-            if (! is_array($rule)) {
-                continue;
-            }
-
-            $tables = array_values(array_filter((array) ($rule['tables'] ?? []), 'is_string'));
-            $columns = array_values(array_filter((array) ($rule['columns'] ?? []), 'is_string'));
-            $multiplier = (float) ($rule['input_multiplier'] ?? 1);
-            $label = is_scalar($rule['label'] ?? null) ? trim((string) $rule['label']) : 'configured numeric value';
-
-            if (empty($tables) || empty($columns) || $multiplier <= 0 || $multiplier === 1.0) {
-                continue;
-            }
-
-            $lines[] = '- For '.$label.', multiply user-facing numeric filters by '.$multiplier.' when filtering '.implode(', ', $tables).'.'.implode('|', $columns).'; divide returned stored values by '.$multiplier.' when explaining them.';
-        }
-
-        return empty($lines) ? 'None configured.' : implode(PHP_EOL, $lines);
+        return 'None configured.';
     }
 
     private function categoricalAliasRules(): string
     {
-        $rules = config('laraknow.categorical_value_aliases', []);
-
-        if (! is_array($rules) || empty($rules)) {
-            return 'None configured.';
-        }
-
-        $lines = [];
-
-        foreach ($rules as $rule) {
-            if (! is_array($rule)) {
-                continue;
-            }
-
-            $tables = array_values(array_filter((array) ($rule['tables'] ?? []), 'is_string'));
-            $columns = array_values(array_filter((array) ($rule['columns'] ?? []), 'is_string'));
-            $values = (array) ($rule['values'] ?? []);
-            $label = is_scalar($rule['label'] ?? null) ? trim((string) $rule['label']) : 'configured categorical aliases';
-
-            if (empty($tables) || empty($columns) || empty($values)) {
-                continue;
-            }
-
-            $pairs = [];
-
-            foreach ($values as $from => $to) {
-                if (is_scalar($from) && is_scalar($to)) {
-                    $pairs[] = trim((string) $from).' => '.trim((string) $to);
-                }
-            }
-
-            if (! empty($pairs)) {
-                $lines[] = '- For '.$label.', map '.implode(', ', $pairs).' when filtering '.implode(', ', $tables).'.'.implode('|', $columns).'.';
-            }
-        }
-
-        return empty($lines) ? 'None configured.' : implode(PHP_EOL, $lines);
+        return 'None configured.';
     }
 
     private function loadInstructionFile(string $fileName, string $key): string
@@ -448,7 +383,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
      */
     private function shouldUseConversationHistory(): bool
     {
-        $mode = (string) config('laraknow.conversation_history.mode', 'follow_up_only');
+        $mode = $this->conversationHistoryMode();
 
         if ($mode === 'always') {
             return true;
@@ -505,13 +440,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
      */
     private function standaloneRequestTerms(): array
     {
-        $configured = config('laraknow.conversation_history.standalone_terms', []);
-
-        if (! is_array($configured)) {
-            $configured = [];
-        }
-
-        $terms = array_merge([
+        $terms = [
             'how many',
             'count',
             'total',
@@ -538,10 +467,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
             'item',
             'details',
             'available',
-        ], array_filter(array_map(
-            fn ($term): string => is_scalar($term) ? mb_trim((string) $term) : '',
-            $configured
-        )));
+        ];
 
         usort($terms, fn (string $left, string $right): int => mb_strlen($right) <=> mb_strlen($left));
 
@@ -570,13 +496,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
      */
     private function ambiguousFollowUpTerms(): array
     {
-        $configured = config('laraknow.conversation_history.ambiguous_follow_up_terms', []);
-
-        if (! is_array($configured)) {
-            $configured = [];
-        }
-
-        $defaults = [
+        return array_values(array_unique(array_filter([
             'list out',
             'show names',
             'show name',
@@ -594,12 +514,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
             'latest one',
             'first one',
             'last one',
-        ];
-
-        return array_values(array_unique(array_filter(array_map(
-            fn ($term): string => is_scalar($term) ? mb_trim((string) $term) : '',
-            array_merge($defaults, $configured)
-        ))));
+        ])));
     }
 
     private function looksLikeHistoryResetPrompt(string $prompt): bool
@@ -624,16 +539,54 @@ class SummaryCoach implements Agent, Conversational, HasTools
      */
     private function historyResetTerms(): array
     {
-        $configured = config('laraknow.conversation_history.history_reset_terms', []);
+        return array_values(array_unique(array_filter([
+            'start over',
+            'forget previous request',
+            'new topic',
+            'change subject',
+            'clear history',
+            'begin again',
+        ])));
+    }
 
-        if (! is_array($configured)) {
-            return [];
-        }
+    private function maxQueryLimit(): int
+    {
+        return self::DEFAULT_MAX_QUERY_LIMIT;
+    }
 
-        return array_values(array_unique(array_filter(array_map(
-            fn ($term): string => is_scalar($term) ? mb_trim((string) $term) : '',
-            $configured
-        ))));
+    private function structuredQueryIntentsEnabled(): bool
+    {
+        return self::DEFAULT_STRUCTURED_QUERY_INTENTS_ENABLED;
+    }
+
+    private function exposeLegacySqlTools(): bool
+    {
+        return self::DEFAULT_STRUCTURED_QUERY_INTENTS_EXPOSE_LEGACY_SQL_TOOLS;
+    }
+
+    private function conversationHistoryMode(): string
+    {
+        return self::DEFAULT_CONVERSATION_HISTORY_MODE;
+    }
+
+    private function conversationHistoryLimit(): int
+    {
+        return self::DEFAULT_CONVERSATION_HISTORY_LIMIT;
+    }
+
+    private function includeAssistantMessagesInHistory(): bool
+    {
+        return self::DEFAULT_INCLUDE_ASSISTANT_MESSAGES;
+    }
+
+    private function includeLastAssistantForFollowups(): bool
+    {
+        return self::DEFAULT_INCLUDE_LAST_ASSISTANT_FOR_FOLLOWUPS;
+    }
+
+    private function sanitizeAssistantMessagesInHistory(): bool
+    {
+        return self::DEFAULT_SANITIZE_ASSISTANT_MESSAGES;
     }
 
     private function looksLikeFollowUpRequest(string $prompt): bool

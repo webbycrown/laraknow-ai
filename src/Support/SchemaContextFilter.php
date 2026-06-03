@@ -17,7 +17,7 @@ class SchemaContextFilter
             $allowedTables
         )));
 
-        if (empty($allowedTables) || ! (bool) config('laraknow.schema_filtering.enabled', true)) {
+        if (empty($allowedTables)) {
             return $allowedTables;
         }
 
@@ -82,11 +82,7 @@ class SchemaContextFilter
      */
     private function fallbackTables(array $allowedTables): array
     {
-        if ((bool) config('laraknow.schema_filtering.include_all_when_unmatched', true)) {
-            return array_slice($allowedTables, 0, $this->maxPromptTables());
-        }
-
-        return [];
+        return array_slice($allowedTables, 0, $this->maxPromptTables());
     }
 
     /**
@@ -99,7 +95,7 @@ class SchemaContextFilter
         $terms[] = $base;
         $terms[] = rtrim($base, 's');
 
-        $aliases = config('laraknow.schema_filtering.table_aliases', []);
+        $aliases = [];
 
         if (is_array($aliases)) {
             foreach ((array) ($aliases[$table] ?? []) as $alias) {
@@ -120,6 +116,6 @@ class SchemaContextFilter
 
     private function maxPromptTables(): int
     {
-        return max(1, (int) config('laraknow.schema_filtering.max_prompt_tables', 8));
+        return 8;
     }
 }

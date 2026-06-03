@@ -16,10 +16,6 @@ class AuditLogger
      */
     public function record(string $event, array $context = [], string $level = 'info'): void
     {
-        if (! (bool) config('laraknow.audit_logging.enabled', true)) {
-            return;
-        }
-
         try {
             $context = $this->sanitizeContext($context);
             $payload = [
@@ -28,15 +24,7 @@ class AuditLogger
                 'context' => $context,
             ];
 
-            if ($this->usesDriver('file')) {
-                $channel = trim((string) config('laraknow.audit_logging.file_channel', ''));
-
-                if ($channel !== '') {
-                    Log::channel($channel)->{$level}('LaraKnow AI audit event', $payload);
-                } else {
-                    Log::{$level}('LaraKnow AI audit event', $payload);
-                }
-            }
+            Log::{$level}('LaraKnow AI audit event', $payload);
 
             if ($this->usesDriver('database')) {
                 $this->recordToDatabase($event, $context, $level);
@@ -87,7 +75,7 @@ class AuditLogger
      */
     private function recordToDatabase(string $event, array $context, string $level): void
     {
-        $table = trim((string) config('laraknow.audit_logging.database_table', 'laraknow_audit_logs'));
+        $table = 'laraknow_audit_logs';
 
         if ($table === '' || ! Schema::hasTable($table)) {
             return;
@@ -107,13 +95,11 @@ class AuditLogger
 
     private function usesDriver(string $driver): bool
     {
-        $drivers = config('laraknow.audit_logging.drivers', ['file']);
-
-        if (! is_array($drivers)) {
+        if ($driver !== 'file') {
             return false;
         }
 
-        return in_array($driver, array_map('strtolower', array_filter($drivers, 'is_string')), true);
+        return true;
     }
 
     private function sanitizeScalar(string $key, mixed $value): mixed
@@ -123,7 +109,7 @@ class AuditLogger
         }
 
         $value = $this->redactSecrets($value);
-        $maxLength = max(50, (int) config('laraknow.audit_logging.max_value_length', 1000));
+        $maxLength = 1000;
 
         return mb_strlen($value) > $maxLength
             ? mb_substr($value, 0, $maxLength - 3).'...'

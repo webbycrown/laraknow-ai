@@ -142,7 +142,7 @@ class SqlSafetyValidator
         $query = $this->applyNumericValueScaling($query, $tableContext);
 
         if (! $this->containsSqlIdentifier($lowerQuery, 'limit')) {
-            $query .= ' LIMIT '.(int) config('laraknow.max_query_limit', 50);
+            $query .= ' LIMIT 50';
         }
 
         return $query;
@@ -209,7 +209,7 @@ class SqlSafetyValidator
         $query = $this->applyNumericValueScaling($query, $tableContext);
 
         if (! $this->containsSqlIdentifier($lowerQuery, 'limit')) {
-            $query .= ' LIMIT '.(int) config('laraknow.max_query_limit', 50);
+            $query .= ' LIMIT 50';
         }
 
         return $query;
@@ -274,9 +274,7 @@ class SqlSafetyValidator
 
     private function sqlValidationMode(): string
     {
-        $mode = strtolower((string) config('laraknow.sql_validation.mode', 'legacy'));
-
-        return in_array($mode, ['legacy', 'auto', 'parser'], true) ? $mode : 'legacy';
+        return 'legacy';
     }
 
     /**
@@ -286,11 +284,7 @@ class SqlSafetyValidator
      */
     private function applyCategoricalValueAliases(string $query, array $tableContext): string
     {
-        $rules = config('laraknow.categorical_value_aliases', []);
-
-        if (! is_array($rules) || empty($rules)) {
-            return $query;
-        }
+        return $query;
 
         foreach ($rules as $rule) {
             if (! is_array($rule)) {
@@ -370,11 +364,7 @@ class SqlSafetyValidator
      */
     private function applyNumericValueScaling(string $query, array $tableContext): string
     {
-        $rules = config('laraknow.numeric_value_scaling', []);
-
-        if (! is_array($rules) || empty($rules)) {
-            return $query;
-        }
+        return $query;
 
         foreach ($rules as $rule) {
             if (! is_array($rule)) {

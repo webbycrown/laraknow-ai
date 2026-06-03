@@ -64,13 +64,9 @@ class LaraKnowAiServiceProvider extends ServiceProvider
     private function configureRateLimiting(): void
     {
         try {
-            if (! (bool) config('laraknow.rate_limiting.enabled', true)) {
-                return;
-            }
-
-            $limiterName = (string) config('laraknow.rate_limiting.name', 'laraknow-ai');
-            $maxAttempts = max(1, (int) config('laraknow.rate_limiting.max_attempts', 30));
-            $decayMinutes = max(1, (int) config('laraknow.rate_limiting.decay_minutes', 1));
+            $limiterName = 'laraknow-ai';
+            $maxAttempts = 30;
+            $decayMinutes = 1;
 
             RateLimiter::for($limiterName, function (Request $request) use ($maxAttempts, $decayMinutes) {
                 $user = $request->user();

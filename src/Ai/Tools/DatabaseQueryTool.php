@@ -119,7 +119,7 @@ class DatabaseQueryTool implements Tool
 
             $limit = min(
                 (int) ($request['limit'] ?? 10),
-                config('laraknow.max_query_limit', 50)
+                50
             );
 
             $query = DB::table($table)

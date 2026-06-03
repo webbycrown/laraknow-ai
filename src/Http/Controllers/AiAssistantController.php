@@ -57,11 +57,6 @@ class AiAssistantController
     // -------------------------------------------------------------------------
 
     /**
-     * Placeholder endpoint for future authenticated user details.
-     */
-    public function user() {}
-
-    /**
      * Return all conversations owned by the logged-in user.
      *
      * @return \Illuminate\Http\JsonResponse

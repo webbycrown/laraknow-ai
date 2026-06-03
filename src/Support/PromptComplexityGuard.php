@@ -13,7 +13,7 @@ class PromptComplexityGuard
     {
         $prompt = trim($prompt);
         $length = mb_strlen($prompt);
-        $maxLength = max(1, (int) config('laraknow.max_prompt_length', 2000));
+        $maxLength = 2000;
 
         if ($length > $maxLength) {
             return [
@@ -25,10 +25,6 @@ class PromptComplexityGuard
                     ],
                 ],
             ];
-        }
-
-        if (! (bool) config('laraknow.broad_prompt_guard.enabled', true)) {
-            return null;
         }
 
         if (! $this->isBroadAnalyticsPrompt($prompt)) {
@@ -49,8 +45,8 @@ class PromptComplexityGuard
     private function isBroadAnalyticsPrompt(string $prompt): bool
     {
         $lowerPrompt = mb_strtolower($prompt);
-        $minLength = max(1, (int) config('laraknow.broad_prompt_guard.min_prompt_length', 240));
-        $maxSections = max(1, (int) config('laraknow.broad_prompt_guard.max_requested_sections', 3));
+        $minLength = 240;
+        $maxSections = 3;
 
         $broadTerms = [
             'all reports',

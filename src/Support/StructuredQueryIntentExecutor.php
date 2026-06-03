@@ -27,7 +27,7 @@ class StructuredQueryIntentExecutor
         $columns = $this->validatedColumns($intent['columns'] ?? ['*'], $tableContext);
         $limit = min(
             max(1, (int) ($intent['limit'] ?? 10)),
-            max(1, (int) config('laraknow.max_query_limit', 50))
+            50
         );
 
         $query = DB::table($table)->select($columns);
@@ -211,36 +211,6 @@ class StructuredQueryIntentExecutor
 
         if ($column === '' || $normalizedValue === '') {
             return [$value, false];
-        }
-
-        $rules = config('laraknow.categorical_value_aliases', []);
-
-        if (! is_array($rules) || empty($rules)) {
-            return [$value, false];
-        }
-
-        foreach ($rules as $rule) {
-            if (! is_array($rule)) {
-                continue;
-            }
-
-            $tables = array_map('strtolower', array_filter((array) ($rule['tables'] ?? []), 'is_string'));
-            $columns = array_map('strtolower', array_filter((array) ($rule['columns'] ?? []), 'is_string'));
-            $values = (array) ($rule['values'] ?? []);
-
-            if (! in_array($table, $tables, true) || ! in_array($column, $columns, true)) {
-                continue;
-            }
-
-            foreach ($values as $from => $to) {
-                if (! is_scalar($from) || ! is_scalar($to)) {
-                    continue;
-                }
-
-                if (strtolower(trim((string) $from)) === $normalizedValue) {
-                    return [$to, true];
-                }
-            }
         }
 
         return [$value, false];

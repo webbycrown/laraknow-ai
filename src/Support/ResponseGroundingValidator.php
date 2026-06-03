@@ -12,9 +12,7 @@ class ResponseGroundingValidator
      */
     public function validate(array $payload, bool $hasToolOutput = false, ?string $prompt = null): array
     {
-        if (! (bool) config('laraknow.response_grounding.enabled', true)) {
-            return $payload;
-        }
+        // Response grounding is always enabled with package defaults.
 
         if (! $hasToolOutput && empty($payload['data'])) {
             return $payload;
@@ -69,9 +67,7 @@ class ResponseGroundingValidator
 
     private function shouldReplaceReply(string $reply): bool
     {
-        if ((bool) config('laraknow.response_grounding.tool_outputs_only', true)) {
-            return true;
-        }
+        return true;
 
         return $this->contradictsData($reply) || $this->containsSpeculativeAnalytics($reply);
     }
@@ -198,7 +194,7 @@ class ResponseGroundingValidator
         }
 
         $count = count($rows);
-        $maxQueryLimit = max(1, (int) config('laraknow.max_query_limit', 50));
+        $maxQueryLimit = 50;
         $label = $this->metricLabel($prompt, 'Total');
         $prefix = $count >= $maxQueryLimit ? 'At least '.$label : $label;
 
@@ -473,7 +469,7 @@ class ResponseGroundingValidator
      */
     private function humanColumnLabel(string $column): string
     {
-        $labels = config('laraknow.response_grounding.column_labels', []);
+        $labels = [];
         $key = strtolower($column);
 
         if (is_array($labels) && isset($labels[$key]) && is_scalar($labels[$key])) {
@@ -500,7 +496,7 @@ class ResponseGroundingValidator
 
     private function isExcludedOutputColumn(string $column): bool
     {
-        $columns = config('laraknow.response_grounding.exclude_columns', $this->defaultExcludedOutputColumns());
+        $columns = $this->defaultExcludedOutputColumns();
 
         if (! is_array($columns)) {
             return false;
@@ -514,7 +510,7 @@ class ResponseGroundingValidator
 
     private function recordReplyHeading(): string
     {
-        return trim((string) config('laraknow.response_grounding.record_heading', ''));
+        return '';
     }
 
     private function formatValue(mixed $value): string
@@ -528,7 +524,7 @@ class ResponseGroundingValidator
         }
 
         $value = trim((string) $value);
-        $maxLength = max(20, (int) config('laraknow.response_grounding.max_value_length', 120));
+        $maxLength = 120;
 
         return mb_strlen($value) > $maxLength
             ? mb_substr($value, 0, $maxLength - 3).'...'
@@ -578,7 +574,7 @@ class ResponseGroundingValidator
 
     private function maxVisibleRows(): int
     {
-        return max(1, (int) config('laraknow.response_grounding.max_visible_rows', 5));
+        return 5;
     }
 
     private function shouldRenderTable(?string $prompt): bool

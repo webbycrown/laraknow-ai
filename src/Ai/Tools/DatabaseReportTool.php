@@ -70,8 +70,8 @@ class DatabaseReportTool implements Tool
                 throw new Exception('No report queries were provided.');
             }
 
-            $configuredMaxQueries = max(1, (int) config('laraknow.max_report_queries', 3));
-            $maxQueriesCap = max(1, (int) config('laraknow.max_report_queries_cap', 3));
+            $configuredMaxQueries = 3;
+            $maxQueriesCap = 3;
             $maxQueries = min($configuredMaxQueries, $maxQueriesCap);
             $sections = [];
             $validator = new SqlSafetyValidator;

@@ -16,10 +16,9 @@ use Illuminate\Support\Facades\Route;
 
 $prefix = config('laraknow.route_prefix', 'laraknow-ai');
 $middleware = array_values(array_filter((array) config('laraknow.route_middleware', [])));
-$rateLimiterEnabled = (bool) config('laraknow.rate_limiting.enabled', true);
-$rateLimiterName = (string) config('laraknow.rate_limiting.name', 'laraknow-ai');
+$rateLimiterName = 'laraknow-ai';
 
-if ($rateLimiterEnabled && $rateLimiterName !== '') {
+if ($rateLimiterName !== '') {
     $middleware[] = 'throttle:'.$rateLimiterName;
 }
 

@@ -152,7 +152,7 @@ class ProjectAnalyzer
      */
     private function fileNameSignals(array $directories): array
     {
-        $maxItems = max(1, (int) config('laraknow.project_analysis.max_items', 80));
+        $maxItems = 80;
         $signals = [];
 
         foreach ($directories as $directory) {
@@ -220,7 +220,7 @@ class ProjectAnalyzer
      */
     private function configuredKeywordLabels(string $configKey, array $signals, array $fallback, int $limit): array
     {
-        $configured = config($configKey, []);
+        $configured = [];
 
         if (! is_array($configured)) {
             return $fallback;
@@ -300,7 +300,7 @@ class ProjectAnalyzer
 
     private function limitSummary(string $summary): string
     {
-        $maxChars = max(500, (int) config('laraknow.project_analysis.max_chars', 4000));
+        $maxChars = 4000;
 
         return mb_strlen($summary) > $maxChars
             ? rtrim(mb_substr($summary, 0, $maxChars)).PHP_EOL.'- Summary truncated by configured limit.'
@@ -309,17 +309,17 @@ class ProjectAnalyzer
 
     private function maxItems(): int
     {
-        return max(3, (int) config('laraknow.project_analysis.max_summary_items', 12));
+        return 12;
     }
 
     private function cacheEnabled(): bool
     {
-        return (bool) config('laraknow.project_analysis.cache.enabled', true);
+        return true;
     }
 
     private function cacheTtl(): int
     {
-        return max(1, (int) config('laraknow.project_analysis.cache.ttl', 3600));
+        return 3600;
     }
 
     private function cacheKey(): string
@@ -327,7 +327,7 @@ class ProjectAnalyzer
         return 'laraknow:project-analysis:'.sha1(implode('|', [
             base_path(),
             (string) @filemtime(base_path('composer.json')),
-            json_encode(config('laraknow.project_analysis', [])),
+            json_encode([]),
         ]));
     }
 
