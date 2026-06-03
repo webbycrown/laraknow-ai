@@ -89,6 +89,9 @@ return [
         'remember_token',
         'token',
         'api_token',
+        'id',
+        'created_at',
+        'updated_at'
     ],
 
     /*

@@ -38,7 +38,7 @@ class DatabaseQueryTool implements Tool
      */
     public function description(): string
     {
-        return 'Read records from one allowed table. Use DatabaseSearchTool for joins, expressions, aggregates, or table.column fields.';
+        return 'Read records from one allowed table. Supports simple filters with where_operator, and use DatabaseSearchTool for joins, expressions, aggregates, or table.column fields.';
     }
 
     /**
@@ -58,6 +58,9 @@ class DatabaseQueryTool implements Tool
                 ->description('Comma-separated exact column names, or * for safe columns'),
 
             'where_column' => $schema->string()->required()->nullable(),
+
+            'where_operator' => $schema->string()->required()->nullable()
+                ->description('Comparison operator for the filter. Supported values: =, !=, <>, <, <=, >, >=, like.'),
 
             'where_value' => $schema->string()->required()->nullable(),
 
@@ -147,9 +150,15 @@ class DatabaseQueryTool implements Tool
                     throw new Exception("Unknown column [{$request['where_column']}] on table [{$table}]. Available safe columns: ".implode(', ', $safeColumns));
                 }
 
+                [$operator, $value] = $this->resolveFilterOperatorAndValue(
+                    (string) ($request['where_operator'] ?? ''),
+                    (string) $request['where_value']
+                );
+
                 $query->where(
                     $request['where_column'],
-                    $request['where_value']
+                    $operator,
+                    $value
                 );
             }
 
@@ -208,6 +217,36 @@ class DatabaseQueryTool implements Tool
     /**
      * Return a model-useful error without exposing stack traces or SQL internals.
      */
+    private function resolveFilterOperatorAndValue(string $operator, string $value): array
+    {
+        $operator = trim($operator);
+        $value = trim($value);
+
+        if ($operator === '') {
+            if (preg_match('/^\s*(<>|!=|>=|<=|>|<|like)\s*(.*)$/iu', $value, $matches)) {
+                $operator = strtolower($matches[1]);
+                $value = trim($matches[2]);
+            } else {
+                $operator = '=';
+            }
+        }
+
+        $operator = $this->validateOperator($operator);
+
+        return [$operator, $value];
+    }
+
+    private function validateOperator(string $operator): string
+    {
+        $operator = strtolower(trim($operator));
+
+        if (! in_array($operator, ['=', '!=', '<>', '<', '<=', '>', '>=', 'like'], true)) {
+            throw new Exception('Unsupported filter operator ['.$operator.'].');
+        }
+
+        return $operator;
+    }
+
     private function safeErrorMessage(string $message): string
     {
         if (preg_match('/\b(count|sum|avg|average|min|max)\s*\(/i', $message)) {
@@ -217,6 +256,7 @@ class DatabaseQueryTool implements Tool
         if (
             str_contains($message, 'Available safe columns:')
             || str_starts_with($message, 'DatabaseQueryTool supports same-table filter columns only.')
+            || str_starts_with($message, 'Unsupported filter operator')
         ) {
             return $message;
         }

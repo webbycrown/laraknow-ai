@@ -143,6 +143,7 @@ class SummaryCoach implements Agent, Conversational, HasTools
                 - When categorical value alias rules are configured, convert user-facing categorical words into stored filter values before querying
                 - When the user requests a specific number of records, set the tool limit to that number and present no more than that number; if fewer records are returned, present only the verified returned records
                 - Use DatabaseQueryTool only for simple reads from one table with filters on columns from that same table
+                - When filtering ranges or numeric thresholds, use where_operator with =, !=, <, <=, >, >=, or like
                 - Never pass SQL expressions such as COUNT(*), SUM(...), aliases, joins, or functions to DatabaseQueryTool columns
                 - Use DatabaseSearchTool for joins, aggregates, grouping, related-table filters, qualified columns, ORDER BY, and SQL expressions
                 - Use DatabaseReportTool for multi-part prompts, dashboards, reports, operational overviews, and several independent metrics; pass compact single-line JSON with one-line SQL
