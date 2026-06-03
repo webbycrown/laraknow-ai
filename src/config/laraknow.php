@@ -57,7 +57,7 @@ return [
     | you prefer to fully describe the application in the instructions above.
     |
     */
-    'auto_analyze_project' => true,
+    'auto_analyze_project' => false,
 
     /*
     |--------------------------------------------------------------------------
