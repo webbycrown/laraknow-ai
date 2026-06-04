@@ -105,8 +105,13 @@ $userSlug =
     $statusText = $safeText('brand.status_text', 'Online');
     $statusDetail = $safeText('brand.status_detail', 'Always here to help');
     $botInitial = strtoupper(substr($safeText('brand.bot_initial', 'A'), 0, 2)) ?: 'A';
-    $botAvatar = $uiValue('brand.bot_avatar');
+    $botAvatar = trim((string) (($uiValue('brand.bot_avatar')) ?? ''));
     $userAvatar = $uiValue('brand.user_avatar');
+    $brandLogo = asset($assetBase . '/logo.png');
+
+    if ($botAvatar === '') {
+        $botAvatar = $brandLogo;
+    }
 
     $label = fn (string $key, string $default) => $safeText('labels.' . $key, $default);
     $message = fn (string $key, string $default) => $safeText('messages.' . $key, $default);
@@ -238,7 +243,19 @@ $userSlug =
     $newConversationIcon = $renderIcon($uiValue('icons.new_conversation', 'plus'), 'plus');
     $historyIcon = $renderIcon($uiValue('icons.history', 'menu'), 'menu');
     $botIcon = $renderIcon($uiValue('icons.bot', 'sparkles'), 'sparkles');
-    $brandIcon = $renderIcon($uiValue('icons.brand', $uiValue('icons.bot', 'sparkles')), $uiValue('icons.bot', 'sparkles'));
+    $brandIconValue = trim((string) ($uiValue('icons.brand') ?? ''));
+    $brandIcon = $brandIconValue !== ''
+        ? $renderIcon($brandIconValue, $uiValue('icons.bot', 'sparkles'))
+        : null;
+
+    if ($brandIcon === null && is_string($botAvatar) && trim($botAvatar) !== '') {
+        $brandIcon = '<img src="'.e($botAvatar).'" alt="'.e($botName).'" class="ac-sidebar-brand-icon" />';
+    }
+
+    if ($brandIcon === null) {
+        $brandIcon = '<img src="'.e($brandLogo).'" alt="'.e($botName).'" class="ac-sidebar-brand-icon" />';
+    }
+
     $jsLabels = [
         'openChat' => $label('open_chat', 'Open LaraKnow chat'),
         'closeChat' => $label('close_chat', 'Close chat'),
@@ -343,11 +360,8 @@ $userSlug =
 
                     @if (is_string($botAvatar) && $botAvatar !== '')
                         <img src="{{ $botAvatar }}" alt="{{ $botName }}">
-                    @elseif ($brandConfigured)
-                        {{-- Prefer configured brand icon for widget avatar so widget and fullpage match --}}
-                        {!! $brandIcon !!}
                     @else
-                        {!! $botIcon !!}
+                        {!! $brandIcon !!}
                     @endif
                 </div>
                 <div>
@@ -541,11 +555,7 @@ $userSlug =
                     <div class="ac-date-divider">{{ $label('today', 'Today') }}</div>
                     <div class="ac-msg-row">
                         <div class="ac-avatar ac-bot">
-                            @if (is_string($botAvatar) && $botAvatar !== '')
-                                <img src="{{ $botAvatar }}" alt="{{ $botName }}">
-                            @else
-                                {{ $botInitial }}
-                            @endif
+                            <img src="{{ $botAvatar }}" alt="{{ $botName }}">
                         </div>
                         <div class="ac-bwrap">
                             <div class="ac-bubble ac-bot">
