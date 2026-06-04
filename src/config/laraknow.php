@@ -152,7 +152,6 @@ return [
             'personality' => null,
             'status_text' => 'Online',
             'status_detail' => 'Always here to help',
-            'bot_initial' => 'A',
             'bot_avatar' => null,
             'user_avatar' => null,
         ],
