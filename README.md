@@ -21,6 +21,14 @@ See the `Changelog` section below for release notes and version history.
 
 ---
 
+## 📺 Demo Video
+
+[![WebbyCommerce Plugin](https://raw.githubusercontent.com/webbycrown/laraknow-ai/uploads/thumbnail.png)](https://youtu.be/IOz2DGRHuJ8)
+
+▶️ **[Watch Full Video on YouTube](https://youtu.be/IOz2DGRHuJ8)**
+
+---
+
 ## Highlights
 
 - Reusable Laravel package for CRM, admin panel, booking, eCommerce, SaaS, and other host apps.
@@ -536,3 +544,4 @@ LaraKnow AI is distributed as a reusable Laravel package. Configure and deploy i
 <div align="center">
    <strong> Made with ❤️ by <a href="https://www.webbycrown.com" rel="nofollow">WebbyCrown</a> </strong>
 </div>
+
