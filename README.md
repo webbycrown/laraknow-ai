@@ -23,7 +23,7 @@ See the `Changelog` section below for release notes and version history.
 
 ## 📺 Demo Video
 
-[![WebbyCommerce Plugin](https://raw.githubusercontent.com/webbycrown/laraknow-ai/main/uploads/thumbnail.png)](https://youtu.be/IOz2DGRHuJ8)
+[![WebbyCommerce Plugin](https://raw.githubusercontent.com/webbycrown/laraknow-ai/main/uploads/laraknow.png)](https://youtu.be/IOz2DGRHuJ8)
 
 ▶️ [Watch Full Video on YouTube](https://youtu.be/IOz2DGRHuJ8)
 
